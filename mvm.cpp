@@ -7,8 +7,8 @@
  * The system uses an OLED display to show the information and buttons for user interaction.
  *
  * @author starlight.kim
- * @version 1.0
- * @date 2021-09-30
+ * @version 0.1.0
+ * @date 2024-04-29
  */
 
 #include <Adafruit_GFX.h>
