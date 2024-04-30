@@ -95,7 +95,6 @@ void loop()
 {
     handleButtons();
     updateDisplay();
-    pingSonar();
     delay(100);
 }
 
@@ -115,7 +114,7 @@ void handleButtons()
     bool left = !digitalRead(BUTTON_LEFT_PIN);
     bool right = !digitalRead(BUTTON_RIGHT_PIN);
     bool select = !digitalRead(BUTTON_SELECT_PIN);
-    bool anyButtonPressed = up || down || select;
+    bool anyButtonPressed = up || down || left || right || select;
 
     switch (currentScreen)
     {
@@ -301,7 +300,7 @@ void adjustCurrentSettingIndex(bool increase)
     float adjustment = increase ? 1.0f : -1.0f;
     switch (menuItem)
     {
-    case 0: // diameter
+    case 0:
         if (isnan(currentSetting))
         {
             currentSetting = 0;
