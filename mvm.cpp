@@ -14,12 +14,14 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
+#include <NewPing.h>
 
 #define OLED_RESET 4
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET);
 
 #define TRIG_PIN A2
 #define ECHO_PIN A3
+NewPing sonar(TRIG_PIN, ECHO_PIN);
 
 #define BUTTON_UP_PIN 5
 #define BUTTON_DOWN_PIN 3
@@ -62,8 +64,6 @@ int menuItem = 0;
 void setup()
 {
     Serial.begin(9600);
-    pinMode(TRIG_PIN, OUTPUT);
-    pinMode(ECHO_PIN, INPUT);
 
     pinMode(BUTTON_UP_PIN, INPUT_PULLUP);
     pinMode(BUTTON_DOWN_PIN, INPUT_PULLUP);
@@ -95,7 +95,6 @@ void loop()
 {
     handleButtons();
     updateDisplay();
-    pingSonar();
     delay(100);
 }
 
@@ -265,7 +264,7 @@ void adjustSetting(bool increase)
     switch (menuItem)
     {
     case 0: // min height
-        settings[currentSetting].minHeight = pingSonar();
+        settings[currentSetting].minHeight = sonar.ping_cm();
         break;
     case 1: // diameter
         if (isnan(settings[currentSetting].diameter))
@@ -362,7 +361,7 @@ void updateDisplay()
  */
 void updateMainScreen()
 {
-    float distance = pingSonar();
+    float distance = sonar.ping_cm();
     float height = (settings[currentSetting].minHeight - distance);
     float volume = (PI * settings[currentSetting].diameter * height) / 1000.0f; // Convert volume from cm^3 to L
 
@@ -394,8 +393,22 @@ void updateMainScreen()
 
         display.drawRect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, WHITE);
         int progress = map(volume, 0, settings[currentSetting].targetCapacity, 0, progressBarWidth);
+
+        if(progress > progressBarWidth)
+        {
+          progress = progressBarWidth;
+        }
+
         display.fillRect(progressBarX, progressBarY, progress, progressBarHeight, WHITE);
 
+        if(remainingCapacity < 0)
+        {
+          display.invertDisplay(true);
+        }
+        else
+        {
+            display.invertDisplay(false);
+        }
         display.display();
     }
 }
@@ -410,6 +423,7 @@ void updateMenuScreen()
     display.setTextSize(1);
     display.setCursor((display.width() - (4 * 6)) / 2, 0);
     display.println("Menu");
+    display.invertDisplay(false);
 
     display.drawLine(0, 10, display.width(), 10, WHITE);
 
@@ -530,26 +544,6 @@ void updateLoadSettingsScreen()
     }
 
     display.display();
-}
-
-/**
- * @brief Pings the sonar sensor and returns the distance to the nearest object.
- *
- * This function sends a pulse to the sonar sensor and measures the time it takes for the pulse to return.
- * It then calculates the distance to the nearest object based on the speed of sound and the time taken.
- *
- * @return The distance to the nearest object in centimeters.
- */
-float pingSonar()
-{
-    digitalWrite(TRIG_PIN, LOW);
-    delayMicroseconds(2);
-    digitalWrite(TRIG_PIN, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(TRIG_PIN, LOW);
-    long duration = pulseIn(ECHO_PIN, HIGH);
-    float distance = duration * 0.034 / 2;
-    return distance;
 }
 
 /**
