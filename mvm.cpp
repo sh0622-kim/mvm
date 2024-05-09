@@ -7,7 +7,7 @@
  * The system uses an OLED display to show the information and buttons for user interaction.
  *
  * @author starlight.kim
- * @version 1.1
+ * @version 0.1.2
  * @date 2024-05-09
  */
 
@@ -18,8 +18,8 @@
 #define OLED_RESET 4
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET);
 
-#define TRIG_PIN A3
-#define ECHO_PIN A2
+#define TRIG_PIN A2
+#define ECHO_PIN A3
 
 #define BUTTON_UP_PIN 5
 #define BUTTON_DOWN_PIN 3
