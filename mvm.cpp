@@ -7,8 +7,8 @@
  * The system uses an OLED display to show the information and buttons for user interaction.
  *
  * @author starlight.kim
- * @version 0.1.0
- * @date 2024-04-29
+ * @version 1.1
+ * @date 2024-05-09
  */
 
 #include <Adafruit_GFX.h>
@@ -18,14 +18,14 @@
 #define OLED_RESET 4
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET);
 
-#define TRIG_PIN A2
-#define ECHO_PIN A3
+#define TRIG_PIN A3
+#define ECHO_PIN A2
 
-#define BUTTON_UP_PIN 2
+#define BUTTON_UP_PIN 5
 #define BUTTON_DOWN_PIN 3
-#define BUTTON_LEFT_PIN 7
-#define BUTTON_RIGHT_PIN 5
-#define BUTTON_SELECT_PIN 6
+#define BUTTON_LEFT_PIN 2
+#define BUTTON_RIGHT_PIN 6
+#define BUTTON_SELECT_PIN 7
 
 #define MAIN_SCREEN 0
 #define MENU_SCREEN 1
@@ -39,15 +39,15 @@ Adafruit_SSD1306 display(128, 64, &Wire, OLED_RESET);
 
 #define PI 3.14159265359
 
-struct WaterTankSetting
+struct MakgeolliTankSetting
 {
     float minHeight = 0;
     float diameter = 0;
     float targetCapacity = 0;
 };
 
-WaterTankSetting settings[5];
-int currentSettingAddress = 5 * sizeof(WaterTankSetting);
+MakgeolliTankSetting settings[5];
+int currentSettingAddress = 5 * sizeof(MakgeolliTankSetting);
 int currentSetting = 0;
 int currentScreen = MAIN_SCREEN;
 int menuItem = 0;
@@ -71,7 +71,7 @@ void setup()
     pinMode(BUTTON_RIGHT_PIN, INPUT_PULLUP);
     pinMode(BUTTON_SELECT_PIN, INPUT_PULLUP);
 
-    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3D);
     display.clearDisplay();
 
     EEPROM.get(currentSettingAddress, currentSetting);
@@ -95,6 +95,7 @@ void loop()
 {
     handleButtons();
     updateDisplay();
+    pingSonar();
     delay(100);
 }
 
@@ -114,7 +115,7 @@ void handleButtons()
     bool left = !digitalRead(BUTTON_LEFT_PIN);
     bool right = !digitalRead(BUTTON_RIGHT_PIN);
     bool select = !digitalRead(BUTTON_SELECT_PIN);
-    bool anyButtonPressed = up || down || left || right || select;
+    bool anyButtonPressed = up || down || select;
 
     switch (currentScreen)
     {
@@ -300,7 +301,7 @@ void adjustCurrentSettingIndex(bool increase)
     float adjustment = increase ? 1.0f : -1.0f;
     switch (menuItem)
     {
-    case 0:
+    case 0: // diameter
         if (isnan(currentSetting))
         {
             currentSetting = 0;
@@ -355,9 +356,9 @@ void updateDisplay()
 }
 
 /**
- * @brief Updates the main screen with the current volume of the water tank.
+ * @brief Updates the main screen with the current volume of the Makgeolli tank.
  *
- * This function calculates the volume of the water tank based on the current settings and displays it on the screen.
+ * This function calculates the volume of the Makgeolli tank based on the current settings and displays it on the screen.
  */
 void updateMainScreen()
 {
@@ -367,7 +368,6 @@ void updateMainScreen()
 
     if (isnan(volume))
     {
-        display.clearDisplay();
         display.setTextSize(1);
         display.setCursor(0, 0);
         display.println("please set up tank");
@@ -381,7 +381,6 @@ void updateMainScreen()
 
         float remainingCapacity = settings[currentSetting].targetCapacity - volume;
 
-        display.clearDisplay();
         display.setTextSize(2);
         display.setCursor((display.width() - 6 * 8) / 2, 15);
         display.print(volume, 1);
@@ -416,7 +415,7 @@ void updateMenuScreen()
 
     const char *menuItems[] = {"Main Screen", "View Settings", "Edit Settings", "Load Settings"};
 
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 4; i++)
     {
         if (i == menuItem)
         {
@@ -441,7 +440,6 @@ void updateMenuScreen()
  */
 void updateViewSettingsScreen()
 {
-
     display.setTextSize(1);
     display.setCursor((display.width() - (13 * 6)) / 2, 0);
     display.println("View Settings");
@@ -563,7 +561,7 @@ void loadSettings()
 {
     for (int i = 0; i < 5; i++)
     {
-        EEPROM.get(i * sizeof(WaterTankSetting), settings[i]);
+        EEPROM.get(i * sizeof(MakgeolliTankSetting), settings[i]);
     }
 }
 
@@ -578,6 +576,6 @@ void saveSettings(int index)
 {
     if (index >= 0 && index < 5)
     {
-        EEPROM.put(index * sizeof(WaterTankSetting), settings[index]);
+        EEPROM.put(index * sizeof(MakgeolliTankSetting), settings[index]);
     }
 }
