@@ -139,7 +139,7 @@ float measureDistance() {
     delayMicroseconds(10);
     digitalWrite(TRIG_PIN, LOW);
 
-    // 타임아웃을 30000 마이크로초로 설정하여 BLE 통신에 미치는 영향을 줄입니다.
+    // 타임아웃을 30000 마이크로초로 설정하여 BLE 통신에 미치는 영향을 줄인다.
     long duration = newPulseIn(ECHO_PIN, HIGH);
     if (duration == 0) {
         return -1.0;  // 타임아웃이 발생하면 -1.0을 반환
